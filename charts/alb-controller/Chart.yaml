@@ -1,0 +1,8 @@
+apiVersion: v2
+name: alb-controller
+description: AWS Load Balancer Controller
+version: 0.1.0
+dependencies:
+  - name: aws-load-balancer-controller
+    version: 1.5.4
+    repository: https://aws.github.io/eks-charts

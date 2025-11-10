@@ -1,0 +1,19 @@
+# Cluster-specific configuration
+eks:
+  clusterName: "dev-eks-cluster"
+  region: "us-west-2"
+  vpcId: "vpc-12345678"
+  
+# IAM Role ARNs
+iam:
+  albControllerRole: "arn:aws:iam::123456789012:role/eks-alb-controller-role"
+  
+# Network configuration
+network:
+  domain: "devopswithdeepak.site"
+  privateSubnets: 
+    - "subnet-12345678"
+    - "subnet-87654321"
+
+# Certificate ARN (replace with your actual certificate ARN)
+certificateArn: "arn:aws:acm:us-west-2:123456789012:certificate/your-certificate-id"

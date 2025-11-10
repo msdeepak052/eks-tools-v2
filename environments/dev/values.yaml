@@ -1,0 +1,79 @@
+# Global variables
+global:
+  clusterName: "dev-eks-cluster"
+  region: "us-west-2"
+  domain: "devopswithdeepak.site"
+
+# ALB Controller configuration
+alb-controller:
+  clusterName: "dev-eks-cluster"
+  region: "us-west-2"
+  vpcId: "vpc-12345678"
+  serviceAccount:
+    create: true
+    name: "aws-load-balancer-controller"
+  ingressClass: "alb"
+
+# Cert Manager configuration  
+cert-manager:
+  installCRDs: true
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Prometheus Stack configuration
+prometheus-stack:
+  # Disable default ingresses since we're using custom ones
+  grafana:
+    adminPassword: "admin123"
+    service:
+      type: ClusterIP
+      port: 3000
+    ingress:
+      enabled: false
+  
+  prometheus:
+    service:
+      type: ClusterIP
+      port: 9090
+    ingress:
+      enabled: false
+  
+  alertmanager:
+    service:
+      type: ClusterIP
+    ingress:
+      enabled: false
+
+  # Ingress configuration for our custom templates
+  ingress:
+    enabled: true
+    groupName: "tools-alb-group"
+    certificateArn: "arn:aws:acm:us-west-2:123456789012:certificate/your-certificate-id"
+
+# ArgoCD configuration
+argocd:
+  server:
+    service:
+      type: ClusterIP
+      port: 80
+    ingress:
+      enabled: false  # Disable default ingress
+    
+    extraArgs:
+      - --insecure
+  
+  configs:
+    params:
+      server.insecure: true
+
+  # Ingress configuration for our custom template
+  ingress:
+    enabled: true
+    groupName: "tools-alb-group"
+    certificateArn: "arn:aws:acm:us-west-2:123456789012:certificate/your-certificate-id"

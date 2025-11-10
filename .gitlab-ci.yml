@@ -1,0 +1,96 @@
+variables:
+  KUBE_VERSION: "1.28"
+  HELM_VERSION: "3.12.0"
+  
+stages:
+  - validate
+  - deploy
+
+before_script:
+  - chmod +x ./scripts/setup-helm.sh
+  - ./scripts/setup-helm.sh
+
+.validate: &validate
+  stage: validate
+  script:
+    - helm dependency update charts/$CHART_NAME
+    - helm template charts/$CHART_NAME -f environments/$ENVIRONMENT/values.yaml --namespace $NAMESPACE > manifest.yaml
+    - kubeval manifest.yaml
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+.deploy: &deploy
+  stage: deploy
+  script:
+    - helm upgrade --install $RELEASE_NAME charts/$CHART_NAME \
+        --namespace $NAMESPACE \
+        --create-namespace \
+        -f environments/$ENVIRONMENT/values.yaml \
+        --atomic \
+        --timeout 10m
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ALB Controller Deployment
+validate-alb-controller:
+  <<: *validate
+  variables:
+    CHART_NAME: "alb-controller"
+    NAMESPACE: "kube-system"
+    ENVIRONMENT: "dev"
+
+deploy-alb-controller:
+  <<: *deploy
+  variables:
+    CHART_NAME: "alb-controller"
+    RELEASE_NAME: "aws-load-balancer-controller"
+    NAMESPACE: "kube-system"
+    ENVIRONMENT: "dev"
+
+# Cert Manager Deployment
+validate-cert-manager:
+  <<: *validate
+  variables:
+    CHART_NAME: "cert-manager"
+    NAMESPACE: "cert-manager"
+    ENVIRONMENT: "dev"
+
+deploy-cert-manager:
+  <<: *deploy
+  variables:
+    CHART_NAME: "cert-manager"
+    RELEASE_NAME: "cert-manager"
+    NAMESPACE: "cert-manager"
+    ENVIRONMENT: "dev"
+
+# Prometheus Stack Deployment
+validate-prometheus-stack:
+  <<: *validate
+  variables:
+    CHART_NAME: "prometheus-stack"
+    NAMESPACE: "monitoring"
+    ENVIRONMENT: "dev"
+
+deploy-prometheus-stack:
+  <<: *deploy
+  variables:
+    CHART_NAME: "prometheus-stack"
+    RELEASE_NAME: "monitoring"
+    NAMESPACE: "monitoring"
+    ENVIRONMENT: "dev"
+
+# ArgoCD Deployment
+validate-argocd:
+  <<: *validate
+  variables:
+    CHART_NAME: "argocd"
+    NAMESPACE: "argocd"
+    ENVIRONMENT: "dev"
+
+deploy-argocd:
+  <<: *deploy
+  variables:
+    CHART_NAME: "argocd"
+    RELEASE_NAME: "argocd"
+    NAMESPACE: "argocd"
+    ENVIRONMENT: "dev"
